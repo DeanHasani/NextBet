@@ -28,11 +28,15 @@ export default function Page() {
   return ( 
   <> 
   <Header /> 
-  <main className="container mx-auto p-4"> 
-    <h2 className="text-xl font-bold mb-3">Available Bets</h2> {availableBets.map((bet) => ( 
-      <BetCard key={bet.id} bet={bet} addToSlip={addToSlip} /> ))} 
-      <BetSlip slip={betSlip} removeFromSlip={removeFromSlip} /> 
-  </main> 
+  <main className="container mx-auto p-4">
+  <h2 className="text-xl font-bold mb-3 text-white">Available Bets</h2>
+  <div className="flex flex-wrap gap-4">
+    {availableBets.map((bet) => (
+      <BetCard key={bet.id} bet={bet} addToSlip={addToSlip} />
+    ))}
+  </div>
+  <BetSlip slip={betSlip} removeFromSlip={removeFromSlip} />
+</main>
   </> 
   ); 
 }
