@@ -6,14 +6,12 @@ export default function BetCard({ bet, addToSlip }) {
 
   return (
     <div className="bet-card flex flex-col justify-between w-80 p-4 bg-gradient-to-r from-gray-800 to-gray-700 rounded-lg shadow mb-4 transition-transform hover:scale-105">
-      {/* Match Header */}
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-white font-bold text-lg">
           {team1} vs {team2}
         </h3>
       </div>
 
-      {/* Odds buttons */}
       <div className="flex justify-between">
         {Object.keys(bet.odds).map((key) => (
           <button

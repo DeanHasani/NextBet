@@ -8,14 +8,12 @@ export default function BetSlip({ slip, removeFromSlip }) {
   const [betHistory, setBetHistory] = useState([]);
   const [message, setMessage] = useState("");
 
-  // Calculate total odds and potential win
   useEffect(() => {
     const odds = slip.reduce((acc, bet) => acc * bet.selectedOdds, 1);
     setTotalOdds(odds);
     setPotentialWin((odds * stake).toFixed(2));
   }, [slip, stake]);
 
-  // Load bet history from localStorage
   useEffect(() => {
     const history = JSON.parse(localStorage.getItem("betHistory") || "[]");
     setBetHistory(history);
@@ -30,7 +28,7 @@ export default function BetSlip({ slip, removeFromSlip }) {
       stake,
       totalOdds,
       potentialWin,
-      status: "pending", // can be 'pending', 'won', 'lost'
+      status: "pending", 
     };
 
     const updatedHistory = [newBet, ...betHistory];

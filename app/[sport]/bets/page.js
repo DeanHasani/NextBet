@@ -11,7 +11,6 @@ export default function SportBetsPage() {
   const [betSlip, setBetSlip] = useState([]);
   const sportBets = betsData[sport] || [];
 
-  // Load persistent slip
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("betSlip") || "[]");
     setBetSlip(stored);
