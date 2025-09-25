@@ -1,4 +1,3 @@
-// components/BetSlip.js
 "use client";
 import { useEffect, useState } from "react";
 
@@ -6,70 +5,139 @@ export default function BetSlip({ slip, removeFromSlip }) {
   const [stake, setStake] = useState(10);
   const [totalOdds, setTotalOdds] = useState(0);
   const [potentialWin, setPotentialWin] = useState(0);
+  const [betHistory, setBetHistory] = useState([]);
+  const [message, setMessage] = useState("");
 
+  // Calculate total odds and potential win
   useEffect(() => {
-    if (slip.length === 0) {
-      setTotalOdds(0);
-      setPotentialWin(0);
-      localStorage.setItem("betSlip", JSON.stringify(slip));
-      return;
-    }
-
-    // Multiply selected odds for multi-bet
     const odds = slip.reduce((acc, bet) => acc * bet.selectedOdds, 1);
     setTotalOdds(odds);
     setPotentialWin((odds * stake).toFixed(2));
-
-    localStorage.setItem("betSlip", JSON.stringify(slip));
   }, [slip, stake]);
 
+  // Load bet history from localStorage
+  useEffect(() => {
+    const history = JSON.parse(localStorage.getItem("betHistory") || "[]");
+    setBetHistory(history);
+  }, []);
+
+  const placeBet = () => {
+    if (slip.length === 0) return;
+
+    const newBet = {
+      id: Date.now(),
+      bets: slip,
+      stake,
+      totalOdds,
+      potentialWin,
+      status: "pending", // can be 'pending', 'won', 'lost'
+    };
+
+    const updatedHistory = [newBet, ...betHistory];
+    setBetHistory(updatedHistory);
+    localStorage.setItem("betHistory", JSON.stringify(updatedHistory));
+
+    setMessage("Bet placed successfully! Waiting for matches...");
+    setTimeout(() => setMessage(""), 3000);
+
+    // Clear current slip
+    localStorage.setItem("betSlip", JSON.stringify([]));
+    slip.length = 0; // clear array
+  };
+
   return (
-    <div className="bet-slip">
-      <h3>Bet Slip</h3>
-      {slip.length === 0 && <p>No bets added yet.</p>}
+    <div className="bet-slip bg-gray-900 text-white p-5 rounded-xl shadow-lg">
+      <h3 className="text-xl font-bold mb-3 border-b border-gray-700 pb-2">
+        Bet Slip
+      </h3>
+
+      {message && <p className="text-green-400 mb-2">{message}</p>}
+
+      {slip.length === 0 && <p className="text-gray-400">No bets added yet.</p>}
 
       {slip.map((bet) => (
-        <div key={bet.id} className="mb-3 border-b border-gray-700 pb-2">
-          <div className="flex justify-between items-center mb-1">
-            <span className="font-semibold text-white">{bet.match}</span>
-            <button
-              onClick={() => removeFromSlip(bet.id)}
-              className="text-red-400 hover:text-red-600 font-bold"
-            >
-              Remove
-            </button>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="bg-gray-800 px-2 py-1 rounded text-white font-bold">
-              {bet.selection}
-            </span>
-            <span className="text-green-400 font-bold">
-              {bet.selectedOdds.toFixed(2)}
-            </span>
-          </div>
+        <div
+          key={`${bet.id}-${bet.selection}`}
+          className="flex justify-between items-center mb-2 border-b border-gray-700 pb-1 shadow-sm"
+        >
+          <span>
+            {bet.match} <span className="text-green-400">({bet.selection})</span>
+          </span>
+          <button
+            onClick={() => removeFromSlip(bet.id, bet.selection)}
+            className="text-red-400 hover:text-red-600"
+          >
+            ✕
+          </button>
         </div>
       ))}
 
       {slip.length > 0 && (
-        <div className="mt-4">
-          <label className="block text-white font-semibold mb-1">
+        <div className="mt-4 space-y-3">
+          <label className="block text-sm">
             Stake ($):
+            <input
+              type="number"
+              value={stake}
+              min="1"
+              onChange={(e) => setStake(Number(e.target.value))}
+              className="w-full mt-1 border border-gray-600 bg-black text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
           </label>
-          <input
-            type="number"
-            value={stake}
-            onChange={(e) => setStake(Number(e.target.value))}
-            className="w-full border border-gray-600 rounded-lg px-3 py-2 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-white mb-2"
-          />
-          <p className="text-white">
-            Total Odds: <span className="font-bold text-green-400">{totalOdds.toFixed(2)}</span>
+
+          <p>
+            Total Odds:{" "}
+            <span className="text-green-400 font-bold">{totalOdds.toFixed(2)}</span>
           </p>
-          <p className="potential-win text-white">
-            Potential Win: <span className="font-bold text-green-400">${potentialWin}</span>
+          <p className="potential-win">
+            Potential Win:{" "}
+            <span className="text-green-400 font-bold">${potentialWin}</span>
           </p>
-          <button className="mt-3 w-full bg-black border border-white text-white font-bold py-2 rounded-lg hover:bg-white hover:text-black transition-colors duration-200">
+
+          <button
+            onClick={placeBet}
+            className="w-full mt-2 bg-black border border-white text-white font-bold py-2 rounded-lg hover:bg-white hover:text-black transition-colors"
+          >
             Place Bet
           </button>
+        </div>
+      )}
+
+      {/* Bet history */}
+      {betHistory.length > 0 && (
+        <div className="mt-6">
+          <h4 className="text-lg font-bold mb-2">Your Bet History</h4>
+          {betHistory.map((b) => (
+            <div
+              key={b.id}
+              className="border border-gray-700 rounded p-2 mb-2 bg-gray-800"
+            >
+              <p className="font-semibold">
+                Stake: ${b.stake} | Potential Win: ${b.potentialWin}
+              </p>
+              <p className="text-sm mb-1">
+                Status:{" "}
+                <span
+                  className={
+                    b.status === "won"
+                      ? "text-green-400"
+                      : b.status === "lost"
+                      ? "text-red-400"
+                      : "text-yellow-400"
+                  }
+                >
+                  {b.status}
+                </span>
+              </p>
+              <ul className="text-sm list-disc pl-5">
+                {b.bets.map((bet) => (
+                  <li key={`${bet.id}-${bet.selection}`}>
+                    {bet.match} ({bet.selection}) @ {bet.selectedOdds.toFixed(2)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       )}
     </div>
